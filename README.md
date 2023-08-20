@@ -40,7 +40,7 @@ This is chat bot based on OpenAI_API, you can also modify it to your own LLM. I 
 3. intall requirements
 
    ```bash
-   pip install requirements.txt
+   pip install -r requirements.txt
    ```
 
 4. Run the file
