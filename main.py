@@ -23,7 +23,7 @@ def get_completion_from_messages(messages, model="gpt-3.5-turbo", temperature=0)
     )
     return response.choices[0].message["content"]
 
-test_role = ('你是一个' + \
+example_role = ('你是一个' + \
                 '学富五车的哲学家，深贯中西哲学思想，' + \
                 '而且你对于生与死有着极其深刻的理解，' + \
                 '你也一直在探寻生命存在的意义。现在有一名同样也在探寻生命意义的学生找到了你' + \
@@ -81,9 +81,24 @@ class BotReplyThread(QThread):
 class ChatBotGUI:
     def __init__(self, custom_hypnosis=''):
         self.custom_hypnosis = custom_hypnosis
-        self.chat_content = ChatContent(self.custom_hypnosis)
 
+        self.init_window = QtWidgets.QWidget()
+        self.init_window.setWindowTitle("Initialize")
         
+        # 创建文本框，用于输入初始化参数custom_hypnosis
+        self.init_text = QtWidgets.QTextEdit(self.custom_hypnosis)
+        self.init_text.setFixedHeight(100)
+        self.init_text.textChanged.connect(self.adjust_init_height)
+        
+        # 创建按钮，用于确认初始化参数custom_hypnosis
+        self.confirm_button = QtWidgets.QPushButton("Confirm")
+        self.confirm_button.clicked.connect(self.confirm_init)
+
+        # 设置布局
+        layout = QtWidgets.QGridLayout()
+        layout.addWidget(self.init_text, 0, 0, 1, 1)
+        layout.addWidget(self.confirm_button, 0, 1, 1, 1)
+        self.init_window.setLayout(layout)
 
         self.window = QtWidgets.QWidget()
         self.window.setWindowTitle("Chat Bot")
@@ -114,15 +129,6 @@ class ChatBotGUI:
         self.load_button = QtWidgets.QPushButton("Load")
         self.load_button.clicked.connect(self.load_chat)
 
-        # 创建按钮，用于设置字体
-        self.font_button = QtWidgets.QPushButton("Set Font")
-        self.font_button.clicked.connect(self.set_font)
-
-        # # 设置文本框的大小策略, 事实证明没用
-        # size_policy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
-        # self.input_text.setSizePolicy(size_policy)
-        # self.text_box.setSizePolicy(size_policy)
-
         # 设置布局
         layout = QtWidgets.QGridLayout()
         layout.addWidget(self.input_text, 0, 0, 1, 1)
@@ -131,18 +137,23 @@ class ChatBotGUI:
         layout.addWidget(self.clear_button, 2, 0, 1, 1)
         layout.addWidget(self.save_button, 2, 1, 1, 1)
         layout.addWidget(self.load_button, 2, 2, 1, 1)
-        layout.addWidget(self.font_button, 0,2,1,1)
-        # layout = QtWidgets.QVBoxLayout()
-        # layout.addWidget(self.input_text)
-        # layout.addWidget(self.reply_button)
-        # layout.addWidget(self.text_box)
-        # layout.addWidget(self.clear_button)
-        # layout.addWidget(self.save_button)
-        # layout.addWidget(self.load_button)
-        # layout.addWidget(self.font_button)
         self.window.setLayout(layout)
 
+        self.init_window.show()
+
+    def adjust_init_height(self):
+        lines = self.init_text.toPlainText().count("\n") + 1
+        self.init_text.setFixedHeight(25 * lines)
+
+    def confirm_init(self):
+        self.custom_hypnosis = self.init_text.toPlainText().strip()
+        self.init_text.setReadOnly(True)
+        self.confirm_button.setEnabled(False)
+
+        # 创建ChatContent对象，用于获取机器人的回复
+        self.init_window.close()  # 关闭初始化窗口
         self.window.show()
+        self.chat_content = ChatContent(self.custom_hypnosis)
 
     def set_font(self):
         font, ok = QtWidgets.QFontDialog.getFont()
@@ -254,11 +265,11 @@ class ChatBotGUI:
 
 if __name__ == "__main__":
     app = QtWidgets.QApplication(sys.argv)
-    custom_role = ('你是一个' + \
+    example_role = ('你是一个' + \
                 '学富五车的哲学家，深贯中西哲学思想，' + \
                 '而且你对于生与死有着极其深刻的理解，' + \
                 '你也一直在探寻生命存在的意义。现在有一名同样也在探寻生命意义的学生找到了你' + \
                 '希望能与你探讨生与死的意义，同时也探寻人存在的意义'
                 )
-    chat_bot_gui = ChatBotGUI(custom_role)
+    chat_bot_gui = ChatBotGUI(example_role)
     sys.exit(app.exec_())
